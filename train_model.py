@@ -10,18 +10,26 @@ from picamera2 import Picamera2
 # Directory where images are located
 dataset_dir = "dataset"
 
+print("Test1")
+
 # Initialize Picamera2
 picam2 = Picamera2()
 picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
 picam2.start()
 
+print("Test2")
+
 # Initialize lists to store known encodings and names
 knownEncodings = []
 knownNames = []
 
+print("Test3")
+
 # Create a window for capturing images
-cv2.namedWindow("Capturing Image", cv2.WINDOW_NORMAL)
-cv2.resizeWindow("Capturing Image", 500, 300)
+# cv2.namedWindow("Capturing Image", cv2.WINDOW_NORMAL)
+# cv2.resizeWindow("Capturing Image", 500, 300)
+
+print("Test4")
 
 # Start processing faces
 print("[INFO] start processing faces...")
