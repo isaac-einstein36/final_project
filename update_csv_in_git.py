@@ -4,7 +4,7 @@ import json
 import http.client
 
 # 🔹 Set your GitHub credentials
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "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"
 REPO = "isaac-einstein36/final_project"
 FILE_PATH = "/Users/sierrabasic/Library/CloudStorage/OneDrive-TheOhioStateUniversity/Ohio State/Classes/SP2025/5194 - Smart Products/Design Projects/Final Project/MasterBookings.csv"  # Update this path to your local file
 GITHUB_FILE_PATH = "MasterBookings.csv"
