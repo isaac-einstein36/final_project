@@ -2,8 +2,23 @@ import urllib.request
 import csv
 from io import StringIO
 from datetime import datetime
+from git import Repo
 
+# Path to your local Git repo
+repo_path = "~/Library/CloudStorage/OneDrive-TheOhioStateUniversity/Ohio State/Classes/SP2025/5194 - Smart Products/Github/final_project"
+repo_path = repo_path.replace("~", "/Users/sierrabasic")
 
+# Open the repo
+repo = Repo(repo_path)
+
+# Make sure it's not in a detached HEAD state
+assert not repo.bare
+
+# Pull the latest changes from origin (default remote)
+origin = repo.remotes.origin
+origin.pull()
+
+print("Repository updated with latest changes.")
 
 # Define the TimeSlot class
 class TimeSlot:
