@@ -4,22 +4,6 @@ from io import StringIO
 from datetime import datetime
 from git import Repo
 
-# Path to your local Git repo
-repo_path = "~/Library/CloudStorage/OneDrive-TheOhioStateUniversity/Ohio State/Classes/SP2025/5194 - Smart Products/Github/final_project"
-repo_path = repo_path.replace("~", "/Users/sierrabasic")
-
-# Open the repo
-repo = Repo(repo_path)
-
-# Make sure it's not in a detached HEAD state
-assert not repo.bare
-
-# Pull the latest changes from origin (default remote)
-origin = repo.remotes.origin
-origin.pull()
-
-print("Repository updated with latest changes.")
-
 # Define the TimeSlot class
 class TimeSlot:
     def __init__(self, customer_id, customer_email, customer_phone, customer_name, start_time, service_name, password):
@@ -34,6 +18,24 @@ class TimeSlot:
 
     def __str__(self):
         return f"TimeSlot({self.customer_name}, {self.start_time}, {self.service_name})"
+
+# Function to pull the latest changes from the Git repository
+def pull_latest_repo():
+    # Path to your local Git repo
+    repo_path = "~/Library/CloudStorage/OneDrive-TheOhioStateUniversity/Ohio State/Classes/SP2025/5194 - Smart Products/Github/final_project"
+    repo_path = repo_path.replace("~", "/Users/sierrabasic")
+
+    # Open the repo
+    repo = Repo(repo_path)
+
+    # Make sure it's not in a detached HEAD state
+    assert not repo.bare
+
+    # Pull the latest changes from origin (default remote)
+    origin = repo.remotes.origin
+    origin.pull()
+
+    print("Repository updated with latest changes.")
 
 # Function to clean and standardize StartTime
 def clean_and_standardize_time(time_str):
@@ -85,3 +87,5 @@ def read_clean_csv():
         clean_time_slots.sort(key=lambda slot: time_slot.start_time)
 
         return clean_time_slots
+
+pull_latest_repo()
