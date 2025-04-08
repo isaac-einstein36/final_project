@@ -37,28 +37,10 @@ def pull_latest_repo():
 
     print("Repository updated with latest changes.")
 
-# Function to clean and standardize StartTime
-def clean_and_standardize_time(time_str):
-    """Attempts to parse various date formats and convert to a standard format."""
-    time_formats = [
-        "%m/%d/%y %H:%M",         # Example: 4/2/25 13:00
-        "%m/%d/%Y %I:%M:%S %p",   # Example: 4/2/2025 3:00:00 PM
-        "%m/%d/%Y %H:%M",         # Example: 4/2/2025 15:00
-    ]
-    
-    for fmt in time_formats:
-        try:
-            # Attempt to parse the time string with the current format
-            # Using strptime to parse the date and then format it to the desired output
-            return datetime.strptime(time_str, fmt).strftime("%Y-%m-%d %H:%M")
-        except ValueError:
-            continue
-    return time_str  # Return original if no format matches
-
 # Read and process CSV file
-def read_clean_csv():
+def read_csv():
         # Declare a list to hold cleaned TimeSlot objects
-        clean_time_slots = []
+        time_slots = []
 
         # Download and read CSV
         # Open and read the CSV file
@@ -70,22 +52,23 @@ def read_clean_csv():
             for row in reader:
                     # Ensure required fields are not blank
                     if row["CustomerID"] and row["StartTime"]:  
-                            standardized_time = clean_and_standardize_time(row["StartTime"])
                             
-                    time_slot = TimeSlot(
-                            row["CustomerID"],
-                            row["CustomerEmail"],
-                            row["CustomerPhone"],
-                            row["CustomerName"],
-                            standardized_time,
-                            row["ServiceName"],
-                            row["Password"]
-                            )
-                    clean_time_slots.append(time_slot)
+                        time_slot = TimeSlot(
+                                row["CustomerID"],
+                                row["CustomerEmail"],
+                                row["CustomerPhone"],
+                                row["CustomerName"],
+                                row["StartTime"],
+                                # datetime.strptime(row["StartTime"], "%Y-%m-%dT%H:%M:%S"),
+                                row["ServiceName"],
+                                row["Password"]
+                                )
+                        time_slots.append(time_slot)
 
         # Sort by start time
-        clean_time_slots.sort(key=lambda slot: time_slot.start_time)
+        time_slots = sorted(time_slots, key=lambda slot: slot.start_time.strip())   
+        # time_slots.sort(key=lambda slot: time_slot.start_time.strip())
 
-        return clean_time_slots
+        return time_slots
 
 pull_latest_repo()
