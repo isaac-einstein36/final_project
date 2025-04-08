@@ -66,4 +66,7 @@ def read_clean_csv():
                             )
                     clean_time_slots.append(time_slot)
 
+        # Sort by start time
+        clean_time_slots.sort(key=lambda slot: time_slot.start_time)
+
         return clean_time_slots
