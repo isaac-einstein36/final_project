@@ -58,15 +58,15 @@ def read_csv():
                                 row["CustomerEmail"],
                                 row["CustomerPhone"],
                                 row["CustomerName"],
-                                row["StartTime"],
-                                # datetime.strptime(row["StartTime"], "%Y-%m-%dT%H:%M:%S"),
+                                # row["StartTime"],
+                                datetime.strptime(row["StartTime"], "%Y-%m-%dT%H:%M:%S"),
                                 row["ServiceName"],
                                 row["Password"]
                                 )
                         time_slots.append(time_slot)
 
         # Sort by start time
-        time_slots = sorted(time_slots, key=lambda slot: slot.start_time.strip())   
+        time_slots = sorted(time_slots, key=lambda slot: slot.start_time)   
         # time_slots.sort(key=lambda slot: time_slot.start_time.strip())
 
         return time_slots

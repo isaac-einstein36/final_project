@@ -11,4 +11,4 @@ import read_bookings.read_database as read_database
 allBookings = read_database.read_csv()
 
 for slot in allBookings:
-        print(slot.start_time)
+        print(slot)
