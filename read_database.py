@@ -3,6 +3,8 @@ import csv
 from io import StringIO
 from datetime import datetime
 
+
+
 # Define the TimeSlot class
 class TimeSlot:
     def __init__(self, customer_id, customer_email, customer_phone, customer_name, start_time, service_name, password):
@@ -47,9 +49,6 @@ def read_clean_csv():
         with open(csv_file, mode="r", encoding="utf-8") as csv_file:
             reader = csv.DictReader(csv_file)
 
-            # Print the header to check the column names
-            print("CSV Headers:", reader.fieldnames)
-
             # Loop through each row
             for row in reader:
                     # Ensure required fields are not blank
@@ -68,9 +67,3 @@ def read_clean_csv():
                     clean_time_slots.append(time_slot)
 
         return clean_time_slots
-
-clean_time_slots = read_clean_csv()
-
-# Print first few entries to verify
-for slot in clean_time_slots[:5]:
-    print(slot)
