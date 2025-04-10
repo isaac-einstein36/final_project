@@ -12,12 +12,10 @@ root.title("Pod Access")
 root.geometry("300x150")
 
 # Variables
-access_granted = False
 correct_password = "openSesame"  # You can change this
 
 # Functions
 def check_password():
-    global access_granted
     entered_password = password_entry.get()
     if entered_password == correct_password:
         set_access_granted(True)

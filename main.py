@@ -4,20 +4,24 @@ import csv
 from io import StringIO
 from datetime import datetime
 
-# Individual Components
-from individual_components.servo import set_angle
+
+# Importing Files
+# import read_bookings.read_database as read_database
+from individual_components.servo import set_angle       # Servo file
 
 # Security Access boolean in json
 import json
 
-# Read the boolean to see if access is granted
+############################################################################
+# Main Code #
+############################################################################
+
+# Read the access boolean to see if access is granted (FaceID and Password entered)
 def get_access_granted():
     with open("shared_state.json", "r") as f:
         state = json.load(f)
     return state.get("access_granted", False)
 
-# Files
-# import read_bookings.read_database as read_database
 
 # allBookings = read_database.read_csv()
 
