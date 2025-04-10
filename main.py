@@ -29,7 +29,8 @@ print(get_access_granted())
 # Once Access is Granted!!
 
 # Unlock the servo
-
+set_angle(0)
+set_angle(90)
 
 
 # Check motion sensor (wait for user to enter the pod)

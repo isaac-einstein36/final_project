@@ -20,18 +20,18 @@ def set_angle(angle):
     pwm.ChangeDutyCycle(duty_cycle)
     time.sleep(1)
 
-try:
-    while True:
-        # Move the servo to different angles
-        set_angle(0)      # Move to 0 degrees
-        time.sleep(2)
-        set_angle(90)     # Move to 90 degrees
-        time.sleep(2)
-        set_angle(180)    # Move to 180 degrees
-        time.sleep(2)
+# try:
+#     while True:
+#         # Move the servo to different angles
+#         set_angle(0)      # Move to 0 degrees
+#         time.sleep(2)
+#         set_angle(90)     # Move to 90 degrees
+#         time.sleep(2)
+#         set_angle(180)    # Move to 180 degrees
+#         time.sleep(2)
 
-except KeyboardInterrupt:
-    print("Program interrupted")
-finally:
-    pwm.stop()         # Stop PWM
-    GPIO.cleanup()     # Clean up the GPIO settings
+# except KeyboardInterrupt:
+#     print("Program interrupted")
+# finally:
+#     pwm.stop()         # Stop PWM
+#     GPIO.cleanup()     # Clean up the GPIO settings
