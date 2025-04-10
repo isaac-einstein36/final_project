@@ -71,4 +71,4 @@ def read_csv():
 
         return time_slots
 
-pull_latest_repo()
+# pull_latest_repo()
