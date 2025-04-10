@@ -4,7 +4,7 @@ import cv2
 import os
 from picamera2 import Picamera2
 
-name = 'Maya'  # Replace with your name
+name = 'Katie'  # Replace with your name
 
 # Create the directory if it doesn't exist
 output_dir = f"dataset/{name}/"
