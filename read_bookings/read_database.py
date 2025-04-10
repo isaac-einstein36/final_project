@@ -2,7 +2,7 @@ import urllib.request
 import csv
 from io import StringIO
 from datetime import datetime
-from git import Repo
+# from git import Repo
 
 # Define the TimeSlot class
 class TimeSlot:
@@ -20,22 +20,22 @@ class TimeSlot:
         return f"TimeSlot({self.customer_name}, {self.start_time}, {self.service_name})"
 
 # Function to pull the latest changes from the Git repository
-def pull_latest_repo():
-    # Path to your local Git repo
-    repo_path = "~/Library/CloudStorage/OneDrive-TheOhioStateUniversity/Ohio State/Classes/SP2025/5194 - Smart Products/Github/final_project"
-    repo_path = repo_path.replace("~", "/Users/sierrabasic")
+# def pull_latest_repo():
+#     # Path to your local Git repo
+#     repo_path = "~/Library/CloudStorage/OneDrive-TheOhioStateUniversity/Ohio State/Classes/SP2025/5194 - Smart Products/Github/final_project"
+#     repo_path = repo_path.replace("~", "/Users/sierrabasic")
 
-    # Open the repo
-    repo = Repo(repo_path)
+#     # Open the repo
+#     repo = Repo(repo_path)
 
-    # Make sure it's not in a detached HEAD state
-    assert not repo.bare
+#     # Make sure it's not in a detached HEAD state
+#     assert not repo.bare
 
-    # Pull the latest changes from origin (default remote)
-    origin = repo.remotes.origin
-    origin.pull()
+#     # Pull the latest changes from origin (default remote)
+#     origin = repo.remotes.origin
+#     origin.pull()
 
-    print("Repository updated with latest changes.")
+#     print("Repository updated with latest changes.")
 
 # Read and process CSV file
 def read_csv():
