@@ -2,7 +2,7 @@ import tkinter as tk
 import json
 
 def set_access_granted(value):
-    with open("shared_state.json", "w") as f:
+    with open("../shared_state.json", "w") as f:
         json.dump({"access_granted": value}, f)
 
 
