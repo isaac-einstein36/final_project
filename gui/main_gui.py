@@ -1,9 +1,22 @@
 # Libraries
 import tkinter as tk    # GUI Library
+from tkinter import ttk
 from datetime import datetime
+import threading
+import json
+
+# Global stop_event to control when to stop the face recognition
+stop_event = threading.Event()
+
+# Global upcoming booking name
+upcoming_booking_name = "No Future Bookings"  # This would come from your booking system
+
+# Global pass face ID boolean
+pass_face_recognition = False
 
 # Project Files
 import read_bookings.read_database as read_database
+from face_id.face_rec import start_face_recognition  # Import the function
 
 # Global function to show a home button throughout
 def showHomeButton(screen, controller):
@@ -36,7 +49,7 @@ class App(tk.Tk):
         self.frames = {}
 
         # Add all screens here
-        for F in (StartScreen, AllBookingsScreen, CheckInScreen):
+        for F in (StartScreen, AllBookingsScreen, CheckInScreen, PasswordPage):
             frame = F(parent=container, controller=self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -44,8 +57,16 @@ class App(tk.Tk):
         self.show_frame(StartScreen)
 
     def show_frame(self, screen_class):
+        """Ensure that face recognition stops before switching screens."""
+        if isinstance(self.frames.get(CheckInScreen), CheckInScreen):
+            self.frames[CheckInScreen].on_exit()  # Stop the face recognition when leaving the CheckInScreen
+
         frame = self.frames[screen_class]
         frame.tkraise()
+
+        # Start face recognition again when switching to CheckInScreen
+        if isinstance(frame, CheckInScreen):
+            frame.on_show()  # Start face recognition when CheckInScreen is shown
 
 # Screen to show the upcoming booking and future bookings
 class StartScreen(tk.Frame):
@@ -76,6 +97,11 @@ class StartScreen(tk.Frame):
         # Show the upcoming booking
         if futureBookings:
             upcoming_booking = futureBookings[0]
+            
+            # Save upcoming name globally
+            global upcoming_booking_name
+            upcoming_booking_name = upcoming_booking.customer_name
+            
             booking_label = tk.Label(self, text=f"Upcoming Booking: {upcoming_booking}")
             booking_label.pack(pady=10)
             
@@ -116,12 +142,107 @@ class CheckInScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
-        showHomeButton(self,controller)
+        showHomeButton(self, controller)
 
-        
         label = tk.Label(self, text="Check-In For Appointment")
         label.pack(pady=10)
 
+        # Store the upcoming booking name for comparison (for now, hardcoded)
+        global upcoming_booking_name
+        self.upcoming_booking_name = upcoming_booking_name  # This would come from your booking system
+        self.upcoming_booking_name = "Isaac" # For testing purposes
+
+        # StringVar to hold the recognized name
+        self.recognized_name_var = tk.StringVar()
+        self.recognized_name_var.set("Waiting for face recognition...")  # Initial text
+        self.recognized_name_label = tk.Label(self, textvariable=self.recognized_name_var)
+        self.recognized_name_label.pack(pady=10)
+
+        # StringVar for displaying the expected name
+        self.expected_name_var = tk.StringVar()
+        self.expected_name_var.set(f"Expecting: {self.upcoming_booking_name}")  # Default to upcoming booking
+        self.expected_name_label = tk.Label(self, textvariable=self.expected_name_var)
+        self.expected_name_label.pack(pady=10)
+
+        # StringVar for instructions
+        self.exit_instructions_var = tk.StringVar()
+        self.exit_instructions_var.set("Please Press 'q' to Exit")
+        self.exit_instructions_label = tk.Label(self, textvariable=self.exit_instructions_var)
+        self.exit_instructions_label.pack(pady=10)
+
+        self.face_recognition_thread = None
+
+        # Add the button for password page (initially hidden)
+        self.password_button = tk.Button(self, text="Go to Password Page", 
+                                         command=lambda: controller.show_frame(PasswordPage))  # Adjust this to your password page screen class
+        self.password_button.pack(pady=10)
+        self.password_button.pack_forget()  # Hide the button initially
+
+    def on_show(self):
+        """This function starts the face recognition when the screen is shown."""
+        # self.recognized_name_var.set(f"Expecting: {self.upcoming_booking_name}")
+
+        if self.face_recognition_thread is None or not self.face_recognition_thread.is_alive():
+            self.start_face_recognition_thread()
+
+    def start_face_recognition_thread(self):
+        """This function starts the face recognition in a background thread."""
+        # Reset the stop_event before starting the face recognition
+        stop_event.clear()
+
+        # Start the face recognition in a new thread
+        self.face_recognition_thread = threading.Thread(target=start_face_recognition, 
+                                                        args=(self.update_recognized_name,), daemon=True)
+        self.face_recognition_thread.start()
+
+    def update_recognized_name(self, name):
+        """This function is used as a callback to update the recognized name in the GUI."""
+        self.recognized_name_var.set(f"Recognized: {name}")
+        
+        # Show the welcome message if the recognized name matches the expected name
+        if name == self.upcoming_booking_name:
+            print(f"Welcome {name}, you're expected!")
+            self.recognized_name_var.set(f"Recognized: {name} - Welcome {name}!")
+            # Remove the expecting label after successful recognition
+            self.expected_name_label.pack_forget()
+
+            global pass_face_recognition
+            pass_face_recognition = True
+
+            # Show the password button once the person is recognized
+            self.password_button.pack(pady=10)  # Make the button visible now
+        else:
+            print(f"Unexpected person: {name}")
+
+    def on_exit(self):
+        stop_event.set()
+
+# Password Page for entering password
+class PasswordPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        label = tk.Label(self, text="Enter your password")
+        label.pack(pady=20)
+
+        password_entry = tk.Entry(self, show="*")
+        password_entry.pack(pady=10)
+
+        submit_button = tk.Button(self, text="Submit", command=self.submit_password)
+        submit_button.pack(pady=10)
+
+    def set_access_granted(value):
+        with open("../shared_state.json", "w") as f:
+            json.dump({"access_granted": value}, f)
+
+    def check_password():
+        entered_password = password_entry.get()
+        if entered_password == correct_password:
+            set_access_granted(True)
+            result_label.config(text="You may enter the pod!", fg="green")
+        else:
+            set_access_granted(False)
+            result_label.config(text="Access Denied", fg="red")
 
 if __name__ == "__main__":
     app = App()

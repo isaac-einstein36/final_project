@@ -16,14 +16,18 @@ class TimeSlot:
         self.service_name = service_name
         self.password = password
 
+        self.formattedTime = formatted_time = self.start_time.strftime("%I:%M %p %m/%d/%y")
+
     def __str__(self):
-        return f"TimeSlot({self.customer_name}, {self.start_time}, {self.service_name})"
+        # return f"TimeSlot({self.customer_name}, {self.formattedTime}, {self.service_name})"
+        return f"{self.service_name} – {self.customer_name} | {self.formattedTime}"
 
 # Function to pull the latest changes from the Git repository
 # def pull_latest_repo():
 #     # Path to your local Git repo
-#     repo_path = "~/Library/CloudStorage/OneDrive-TheOhioStateUniversity/Ohio State/Classes/SP2025/5194 - Smart Products/Github/final_project"
-#     repo_path = repo_path.replace("~", "/Users/sierrabasic")
+#     # repo_path = "~/Library/CloudStorage/OneDrive-TheOhioStateUniversity/Ohio State/Classes/SP2025/5194 - Smart Products/Github/final_project"
+#     # repo_path = repo_path.replace("~", "/Users/sierrabasic")
+#     repo_path = "~/Documents/5194_Code_Repo/final_project"
 
 #     # Open the repo
 #     repo = Repo(repo_path)
