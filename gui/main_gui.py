@@ -8,11 +8,15 @@ import json
 # Global stop_event to control when to stop the face recognition
 stop_event = threading.Event()
 
+# Global Security booleans
+pass_face_recognition = False
+pass_password = False
+
 # Global upcoming booking name
 upcoming_booking_name = "No Future Bookings"  # This would come from your booking system
 
-# Global pass face ID boolean
-pass_face_recognition = False
+# Global upcoming booking password
+correct_password = "No Future Bookings"  # This would come from your booking system
 
 # Project Files
 import read_bookings.read_database as read_database
@@ -98,9 +102,10 @@ class StartScreen(tk.Frame):
         if futureBookings:
             upcoming_booking = futureBookings[0]
             
-            # Save upcoming name globally
-            global upcoming_booking_name
+            # Save upcoming name and password globally
+            global upcoming_booking_name, correct_password
             upcoming_booking_name = upcoming_booking.customer_name
+            correct_password = upcoming_booking.password
             
             booking_label = tk.Label(self, text=f"Upcoming Booking: {upcoming_booking}")
             booking_label.pack(pady=10)
@@ -150,7 +155,7 @@ class CheckInScreen(tk.Frame):
         # Store the upcoming booking name for comparison (for now, hardcoded)
         global upcoming_booking_name
         self.upcoming_booking_name = upcoming_booking_name  # This would come from your booking system
-        self.upcoming_booking_name = "Isaac" # For testing purposes
+        # self.upcoming_booking_name = "Isaac" # For testing purposes
 
         # StringVar to hold the recognized name
         self.recognized_name_var = tk.StringVar()
@@ -209,8 +214,9 @@ class CheckInScreen(tk.Frame):
             global pass_face_recognition
             pass_face_recognition = True
 
-            # Show the password button once the person is recognized
-            self.password_button.pack(pady=10)  # Make the button visible now
+            if pass_face_recognition:
+                # Show the password button once the person is recognized
+                self.password_button.pack(pady=10)  # Make the button visible now
         else:
             print(f"Unexpected person: {name}")
 
@@ -222,27 +228,37 @@ class PasswordPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
+        showHomeButton(self, controller)
+
         label = tk.Label(self, text="Enter your password")
         label.pack(pady=20)
 
-        password_entry = tk.Entry(self, show="*")
-        password_entry.pack(pady=10)
+        self.password_entry = tk.Entry(self, show="*")
+        self.password_entry.pack(pady=10)
 
-        submit_button = tk.Button(self, text="Submit", command=self.submit_password)
+        self.result_label = tk.Label(self, text="", fg="red")
+        self.result_label.pack(pady=10)
+
+        submit_button = tk.Button(self, text="Submit", command=self.check_password)
         submit_button.pack(pady=10)
 
-    def set_access_granted(value):
-        with open("../shared_state.json", "w") as f:
+    def set_access_granted(self,value):
+        with open("shared_state.json", "w") as f:
             json.dump({"access_granted": value}, f)
 
-    def check_password():
-        entered_password = password_entry.get()
+    def check_password(self):
+        entered_password = self.password_entry.get()
+        global correct_password
+        correct_password = "1234"
         if entered_password == correct_password:
-            set_access_granted(True)
-            result_label.config(text="You may enter the pod!", fg="green")
+            self.set_access_granted(True)
+            self.result_label.config(text="You may enter the pod!", fg="green")
+            global pass_password
+            pass_password = True
+
         else:
-            set_access_granted(False)
-            result_label.config(text="Access Denied", fg="red")
+            self.set_access_granted(False)
+            self.result_label.config(text="Access Denied", fg="red")
 
 if __name__ == "__main__":
     app = App()
