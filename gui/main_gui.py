@@ -5,12 +5,20 @@ from datetime import datetime
 import threading
 import json
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import random
+from tkinter import messagebox
+
+
 # Global stop_event to control when to stop the face recognition
 stop_event = threading.Event()
 
 # Global Security booleans
 pass_face_recognition = False
 pass_password = False
+shown_face_recognition_once = False
 
 # Global upcoming booking name
 upcoming_booking_name = "No Future Bookings"  # This would come from your booking system
@@ -53,7 +61,7 @@ class App(tk.Tk):
         self.frames = {}
 
         # Add all screens here
-        for F in (StartScreen, AllBookingsScreen, CheckInScreen, PasswordPage):
+        for F in (StartScreen, AllBookingsScreen, CheckInScreen, SkipFacePage, PasswordPage):
             frame = F(parent=container, controller=self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -72,11 +80,19 @@ class App(tk.Tk):
         if isinstance(frame, CheckInScreen):
             frame.on_show()  # Start face recognition when CheckInScreen is shown
 
+        if hasattr(frame, "on_show"):
+            frame.on_show()
+
+        if not hasattr(frame, 'home_button'):
+            showHomeButton(frame, self)
+
 # Screen to show the upcoming booking and future bookings
 class StartScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         showHomeButton(self,controller)
+
+        self.controller = controller
         
         label = tk.Label(self, text="Home Screen")
         label.pack(pady=10)
@@ -84,10 +100,13 @@ class StartScreen(tk.Frame):
         btn = tk.Button(self, text="See All Bookings",
                         command=lambda: controller.show_frame(AllBookingsScreen))
         btn.pack()
+
+        self.checkin_button = tk.Button(self, text="Check-In for Appointment")
+        self.checkin_button.pack(pady=20)
         
-        btn = tk.Button(self, text="Check-In for Appointment",
-                        command=lambda: controller.show_frame(CheckInScreen))
-        btn.pack()
+        # If FaceID has been shown once, skip the face recognition and go straight to email verification
+        global shown_face_recognition_once
+        print(shown_face_recognition_once)
 
         # Read the available bookings
         allBookings = read_database.read_csv()
@@ -122,6 +141,20 @@ class StartScreen(tk.Frame):
         else:
             no_booking_label = tk.Label(self, text="No Upcoming Bookings")
             no_booking_label.pack(pady=10)
+
+    def on_show(self):
+        global shown_face_recognition_once
+
+        if shown_face_recognition_once:
+            self.checkin_button.config(
+                text="Check-In for Appointment (Email Verification)",
+                command=lambda: self.controller.show_frame(SkipFacePage)
+            )
+        else:
+            self.checkin_button.config(
+                text="Check-In for Appointment (Face ID)",
+                command=lambda: self.controller.show_frame(CheckInScreen)
+            )
 
 # Screen to see all bookings
 class AllBookingsScreen(tk.Frame):
@@ -183,6 +216,11 @@ class CheckInScreen(tk.Frame):
         self.password_button.pack(pady=10)
         self.password_button.pack_forget()  # Hide the button initially
 
+        # Button to skip FaceID
+        self.skip_face_recognition_button = tk.Button(self, text="Skip Face Recognition",
+                                                      command=lambda: controller.show_frame(SkipFacePage), fg="red")
+        self.skip_face_recognition_button.pack(pady=5)
+
     def on_show(self):
         """This function starts the face recognition when the screen is shown."""
         # self.recognized_name_var.set(f"Expecting: {self.upcoming_booking_name}")
@@ -192,6 +230,11 @@ class CheckInScreen(tk.Frame):
 
     def start_face_recognition_thread(self):
         """This function starts the face recognition in a background thread."""
+        # Set shownFaceRecognitionOnce to True
+        global shown_face_recognition_once
+        shown_face_recognition_once = True
+        print(shown_face_recognition_once)
+        
         # Reset the stop_event before starting the face recognition
         stop_event.clear()
 
@@ -222,6 +265,109 @@ class CheckInScreen(tk.Frame):
 
     def on_exit(self):
         stop_event.set()
+        if self.face_recognition_thread and self.face_recognition_thread.is_alive():
+            self.face_recognition_thread.join()  # Wait for the thread to clean up properly
+
+# Function to send a verification email
+def send_verification_email(receiver_email):
+    # Email account credentials
+    sender_email = "smartproductsfinalproject2025@gmail.com"
+    sender_password = "alsu yvfg mnvi ovnx"  # Use App Password if you have 2FA enabled
+
+    # Generate a random 6-digit verification code
+    verification_code = random.randint(100000, 999999)
+
+    # Create the email content
+    subject = "Your Verification Code"
+    body = f"Your verification code is: {verification_code}"
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Send the email via Gmail's SMTP server
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
+        server.quit()
+        
+        print(f"Verification email sent to {receiver_email}")
+        return verification_code
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return None
+
+
+# Tkinter GUI page to skip face recognition and send verification email
+class SkipFacePage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        showHomeButton(self,controller)
+
+
+        self.controller = controller
+
+        # Label to show what the page is about
+        label = tk.Label(self, text="Enter Email to Receive Verification Code")
+        label.pack(pady=20)
+
+        # Email entry field
+        self.email_entry = tk.Entry(self, width=30)
+        self.email_entry.pack(pady=10)
+
+        # Button to send verification email
+        send_btn = tk.Button(self, text="Send Code", command=self.send_code)
+        send_btn.pack(pady=10)
+
+        # Label to show the verification status
+        self.status_label = tk.Label(self, text="", fg="green")
+        self.status_label.pack(pady=10)
+
+        # Code entry field to verify the code
+        self.code_entry = tk.Entry(self, width=30)
+        self.code_entry.pack(pady=10)
+
+        # Button to verify the code
+        verify_btn = tk.Button(self, text="Verify Code", command=self.verify_code)
+        verify_btn.pack(pady=10)
+
+        # Button to go to password page after verification
+        self.password_btn = tk.Button(self, text="Go to Password Page", state="disabled",
+                                      command=lambda: controller.show_frame(PasswordPage))
+        self.password_btn.pack(pady=20)
+
+    def send_code(self):
+        # Get the email from the entry field
+        email = self.email_entry.get()
+
+        if email:
+            # Send the verification email and get the code
+            self.verification_code = send_verification_email(email)
+
+            if self.verification_code:
+                self.status_label.config(text=f"Code sent to {email}")
+                self.status_label.config(fg="green")
+            else:
+                self.status_label.config(text="Failed to send code. Try again.")
+                self.status_label.config(fg="red")
+        else:
+            self.status_label.config(text="Please enter a valid email.")
+            self.status_label.config(fg="red")
+
+    def verify_code(self):
+        # Get the entered code
+        entered_code = self.code_entry.get()
+
+        if entered_code == str(self.verification_code):
+            self.status_label.config(text="Verification successful!", fg="green")
+            self.password_btn.config(state="normal")  # Enable the password button
+        else:
+            self.status_label.config(text="Incorrect code. Try again.", fg="red")
+
 
 # Password Page for entering password
 class PasswordPage(tk.Frame):
