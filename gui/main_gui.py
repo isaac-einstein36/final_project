@@ -103,10 +103,6 @@ class StartScreen(tk.Frame):
 
         self.checkin_button = tk.Button(self, text="Check-In for Appointment")
         self.checkin_button.pack(pady=20)
-        
-        # If FaceID has been shown once, skip the face recognition and go straight to email verification
-        global shown_face_recognition_once
-        print(shown_face_recognition_once)
 
         # Read the available bookings
         allBookings = read_database.read_csv()
@@ -126,9 +122,22 @@ class StartScreen(tk.Frame):
             upcoming_booking_name = upcoming_booking.customer_name
             correct_password = upcoming_booking.password
             
-            booking_label = tk.Label(self, text=f"Upcoming Booking: {upcoming_booking}")
+            booking_label = tk.Label(self, text=f"Upcoming Booking:\n {upcoming_booking}")
             booking_label.pack(pady=10)
-            
+
+            # Calculate time remaining until next appointment
+            self.upcoming_booking_start = upcoming_booking.start_time
+            time_diff = self.upcoming_booking_start - now
+            total_seconds = int(time_diff.total_seconds())
+
+            days = total_seconds // 86400
+            hours = (total_seconds % 86400) // 3600
+            minutes = (total_seconds % 3600) // 60
+
+            formatted_time = f"Time Until Appointment: {days} days, {hours} hours, {minutes} minutes"
+            self.time_remaining_label = tk.Label(self,text=formatted_time)
+            self.time_remaining_label.pack(pady=10)
+
             # List all other bookings
             tk.Label(self, text="Future Bookings:").pack(pady=5)
             counter = 1
@@ -155,6 +164,17 @@ class StartScreen(tk.Frame):
                 text="Check-In for Appointment (Face ID)",
                 command=lambda: self.controller.show_frame(CheckInScreen)
             )
+
+        # Update time remaining label
+        time_diff = self.upcoming_booking_start - datetime.now()
+        total_seconds = int(time_diff.total_seconds())
+
+        days = total_seconds // 86400
+        hours = (total_seconds % 86400) // 3600
+        minutes = (total_seconds % 3600) // 60
+
+        new_formatted_time = f"Time Until Appointment: {days} days, {hours} hours, {minutes} minutes"
+        self.time_remaining_label.config = tk.Label(text=new_formatted_time)
 
 # Screen to see all bookings
 class AllBookingsScreen(tk.Frame):
@@ -233,7 +253,6 @@ class CheckInScreen(tk.Frame):
         # Set shownFaceRecognitionOnce to True
         global shown_face_recognition_once
         shown_face_recognition_once = True
-        print(shown_face_recognition_once)
         
         # Reset the stop_event before starting the face recognition
         stop_event.clear()
@@ -308,8 +327,11 @@ class SkipFacePage(tk.Frame):
 
         showHomeButton(self,controller)
 
-
         self.controller = controller
+
+        # Label to show what the page is about
+        label = tk.Label(self, text="")
+        label.pack(pady=20)
 
         # Label to show what the page is about
         label = tk.Label(self, text="Enter Email to Receive Verification Code")
