@@ -129,7 +129,7 @@ class StartScreen(tk.Frame):
             # Calculate time remaining until next appointment
             global upcoming_booking_start
             upcoming_booking_start = upcoming_booking.start_time
-            time_diff = self.upcoming_booking_start - now
+            time_diff = upcoming_booking_start - now
             total_seconds = int(time_diff.total_seconds())
 
             days = total_seconds // 86400
