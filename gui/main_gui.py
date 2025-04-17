@@ -31,6 +31,11 @@ correct_password = "No Future Bookings"  # This would come from your booking sys
 import read_bookings.read_database as read_database
 from face_id.face_rec import start_face_recognition  # Import the function
 
+def get_access_granted():
+    with open("shared_state.json", "r") as f:
+        state = json.load(f)
+    return state.get("access_granted", False)
+
 # Global function to show a home button throughout
 def showHomeButton(screen, controller):
     # Load PNG image using tk.PhotoImage
@@ -62,7 +67,7 @@ class App(tk.Tk):
         self.frames = {}
 
         # Add all screens here
-        for F in (StartScreen, AllBookingsScreen, CheckInScreen, SkipFacePage, PasswordPage):
+        for F in (StartScreen, AllBookingsScreen, CheckInScreen, SkipFacePage, PasswordPage, EnterPodPage):
             frame = F(parent=container, controller=self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -103,7 +108,15 @@ class StartScreen(tk.Frame):
         btn.pack()
 
         self.checkin_button = tk.Button(self, text="Check-In for Appointment")
-        self.checkin_button.pack(pady=20)
+        self.checkin_button.pack(pady=10)
+
+        self.enter_pod_btn = tk.Button(self, text="Enter Pod", state="disabled",
+                                       command=lambda: controller.show_frame(EnterPodPage))
+        self.enter_pod_btn.pack(pady=10)
+
+        # Check if the user has logged in properly to their nap session
+        if get_access_granted():
+            self.enter_pod_btn.config(state="normal")
 
         # Read the available bookings
         allBookings = read_database.read_csv()
@@ -140,6 +153,7 @@ class StartScreen(tk.Frame):
             
             time_remaining_label = tk.Label(self,text=formatted_time)
             time_remaining_label.pack(pady=10)
+            self.time_remaining_label = time_remaining_label
 
             # List all other bookings
             tk.Label(self, text="Future Bookings:").pack(pady=5)
@@ -169,6 +183,10 @@ class StartScreen(tk.Frame):
                 command=lambda: self.controller.show_frame(CheckInScreen)
             )
 
+        # See if the user has logged in properly to their nap session
+        if get_access_granted():
+            self.enter_pod_btn.config(state="normal")
+
         # Update time remaining label
         global upcoming_booking_start
         time_diff = upcoming_booking_start - datetime.now()
@@ -179,7 +197,7 @@ class StartScreen(tk.Frame):
         minutes = (total_seconds % 3600) // 60
 
         new_formatted_time = f"Time Until Appointment: {days} days, {hours} hours, {minutes} minutes"
-        # self.time_remaining_label.config = tk.Label(text=new_formatted_time)
+        self.time_remaining_label.config = tk.Label(text=new_formatted_time)
 
 # Screen to see all bookings
 class AllBookingsScreen(tk.Frame):
@@ -275,7 +293,7 @@ class CheckInScreen(tk.Frame):
         # Show the welcome message if the recognized name matches the expected name
         if name == self.upcoming_booking_name:
             print(f"Welcome {name}, you're expected!")
-            self.recognized_name_var.set(f"Recognized: {name} - Welcome {name}!")
+            self.recognized_name_var.set(f"\nRecognized: {name} - Welcome {name}!")
             # Remove the expecting label after successful recognition
             self.expected_name_label.pack_forget()
 
@@ -416,6 +434,11 @@ class PasswordPage(tk.Frame):
         submit_button = tk.Button(self, text="Submit", command=self.check_password)
         submit_button.pack(pady=10)
 
+        # Button to go to "Enter Pod" page after verification
+        self.enter_pod_btn = tk.Button(self, text="Click to Enter Pod!", state="disabled",
+                                      command=lambda: controller.show_frame(EnterPodPage))
+        self.enter_pod_btn.pack(pady=10)
+
     def set_access_granted(self,value):
         with open("shared_state.json", "w") as f:
             json.dump({"access_granted": value}, f)
@@ -429,10 +452,21 @@ class PasswordPage(tk.Frame):
             self.result_label.config(text="You may enter the pod!", fg="green")
             global pass_password
             pass_password = True
+            self.enter_pod_btn.config(state="normal")  # Enable the enter pod button
 
         else:
             self.set_access_granted(False)
             self.result_label.config(text="Access Denied", fg="red")
+            self.enter_pod_btn.config(state="disabled")
+
+class EnterPodPage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        showHomeButton(self, controller)
+
+        label = tk.Label(self, text="Welcome to Your Nap Session!")
+        label.pack(pady=20)
 
 if __name__ == "__main__":
     app = App()
