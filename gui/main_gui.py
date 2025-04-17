@@ -137,8 +137,9 @@ class StartScreen(tk.Frame):
             minutes = (total_seconds % 3600) // 60
 
             formatted_time = f"Time Until Appointment: {days} days, {hours} hours, {minutes} minutes"
-            self.time_remaining_label = tk.Label(self,text=formatted_time)
-            self.time_remaining_label.pack(pady=10)
+            
+            time_remaining_label = tk.Label(self,text=formatted_time)
+            time_remaining_label.pack(pady=10)
 
             # List all other bookings
             tk.Label(self, text="Future Bookings:").pack(pady=5)
@@ -178,7 +179,7 @@ class StartScreen(tk.Frame):
         minutes = (total_seconds % 3600) // 60
 
         new_formatted_time = f"Time Until Appointment: {days} days, {hours} hours, {minutes} minutes"
-        self.time_remaining_label.config = tk.Label(text=new_formatted_time)
+        # self.time_remaining_label.config = tk.Label(text=new_formatted_time)
 
 # Screen to see all bookings
 class AllBookingsScreen(tk.Frame):
