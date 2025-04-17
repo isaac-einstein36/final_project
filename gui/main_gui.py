@@ -22,6 +22,7 @@ shown_face_recognition_once = False
 
 # Global upcoming booking name
 upcoming_booking_name = "No Future Bookings"  # This would come from your booking system
+upcoming_booking_start = datetime.now()  # This would come from your booking system
 
 # Global upcoming booking password
 correct_password = "No Future Bookings"  # This would come from your booking system
@@ -126,7 +127,8 @@ class StartScreen(tk.Frame):
             booking_label.pack(pady=10)
 
             # Calculate time remaining until next appointment
-            self.upcoming_booking_start = upcoming_booking.start_time
+            global upcoming_booking_start
+            upcoming_booking_start = upcoming_booking.start_time
             time_diff = self.upcoming_booking_start - now
             total_seconds = int(time_diff.total_seconds())
 
@@ -153,6 +155,7 @@ class StartScreen(tk.Frame):
 
     def on_show(self):
         global shown_face_recognition_once
+        global upcoming_booking_start
 
         if shown_face_recognition_once:
             self.checkin_button.config(
@@ -166,7 +169,8 @@ class StartScreen(tk.Frame):
             )
 
         # Update time remaining label
-        time_diff = self.upcoming_booking_start - datetime.now()
+        global upcoming_booking_start
+        time_diff = upcoming_booking_start - datetime.now()
         total_seconds = int(time_diff.total_seconds())
 
         days = total_seconds // 86400
@@ -207,6 +211,7 @@ class CheckInScreen(tk.Frame):
 
         # Store the upcoming booking name for comparison (for now, hardcoded)
         global upcoming_booking_name
+        global upcoming_booking_start
         self.upcoming_booking_name = upcoming_booking_name  # This would come from your booking system
         # self.upcoming_booking_name = "Isaac" # For testing purposes
 
