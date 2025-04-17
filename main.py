@@ -3,10 +3,12 @@ import urllib.request
 import csv
 from io import StringIO
 from datetime import datetime
+import time
 
 
 # Importing Files
 # import read_bookings.read_database as read_database
+from gui.main_gui import App
 from individual_components.servo import set_angle       # Servo file
 
 # Security Access boolean in json
@@ -28,9 +30,17 @@ def get_access_granted():
 # for slot in allBookings:
 #         print(slot)
 
-print(get_access_granted())
+# Open GUI
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
 
 # Once Access is Granted!!
+while (not get_access_granted()):
+    time.sleep(0.1)
+
+if get_access_granted():
+    print("Access Granted")
 
 # Unlock the servo
 set_angle(0)
