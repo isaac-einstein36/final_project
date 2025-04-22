@@ -1,9 +1,11 @@
-from gpiozero import LED
+from gpiozero import RGBLED
 from time import sleep
-led = LED(24)
+from colorzero import Color
 
-while (True):
-        led.on()
-        sleep(2)
-        led.off()
-        sleep(2)
+led=RGBLED(18,23,24)
+led.color=Color('red')
+sleep(2)
+led.color=Color('blue')
+sleep(2)
+led.color=Color('white')
+sleep(2)
