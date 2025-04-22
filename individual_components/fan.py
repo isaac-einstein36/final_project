@@ -1,7 +1,7 @@
 from gpiozero import PWMOutputDevice
 import time
 
-motor_pin = PWMOutputDevice(18)
+motor_pin = PWMOutputDevice(26)
 
 def set_motor_speed(speed):
     if speed > 1:
