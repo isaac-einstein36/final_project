@@ -3,7 +3,7 @@ import time
 
 motor_pin = PWMOutputDevice(26)
 
-def set_motor_speed(speed):
+def set_fan_speed(speed):
     if speed > 1:
         speed = 1
     elif speed < 0:

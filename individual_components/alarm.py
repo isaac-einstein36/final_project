@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import state_manager as sm
 
 BuzzerPin = 4
 
@@ -9,7 +10,6 @@ GPIO.setwarnings(False)
 
 global Buzz 
 Buzz = GPIO.PWM(BuzzerPin, 440) 
-Buzz.start(50) 
 
 B0=31
 C1=33
@@ -123,7 +123,28 @@ beat = [
   1
 ]
 
-while True:
-	for i in range(1, len(song)): 
-		Buzz.ChangeFrequency(song[i]) 
-		time.sleep(beat[i]*0.13) 
+def play_alarm():
+  global song
+  global beat
+  global Buzz
+  
+  if sm.get_nap_completed():
+    print("Nap Completed")
+    sm.set_alarm_sounding(True)
+    
+    Buzz.start(50)
+    for i in range(1, len(song)): 
+        if (not sm.get_snooze_alarm()):
+          Buzz.ChangeFrequency(song[i]) 
+          time.sleep(beat[i]*0.13)
+        else:
+           Buzz.stop()
+           break 
+  else:
+     sm.set_alarm_sounding(False)
+     Buzz.stop()
+
+# while True:
+# 	for i in range(1, len(song)): 
+# 		Buzz.ChangeFrequency(song[i]) 
+# 		time.sleep(beat[i]*0.13) 

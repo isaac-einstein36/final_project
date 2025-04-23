@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 from gpiozero import Button
 
-
+'''
 # Set up the GPIO mode and button pin
 GPIO.setmode(GPIO.BCM)  # Using BCM numbering
 button_pin = 25        # GPIO pin number where the button is connected
@@ -24,3 +24,5 @@ except KeyboardInterrupt:
     print("Program terminated")
 finally:
     GPIO.cleanup()  # Clean up the GPIO settings when done
+
+'''

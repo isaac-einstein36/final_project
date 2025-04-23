@@ -10,56 +10,18 @@ import time
 from gui.main_gui import App
 from individual_components.servo import set_angle       # Servo file
 import individual_components.motion_sensor as motion_sensor # Motion Sensor file
-from individual_components.fan import set_motor_speed # Fan file
+from individual_components.fan import set_fan_speed # Fan file
 from individual_components.led import set_led_color # LED file
+from individual_components.alarm import play_alarm # Alarm file
 from gpiozero import Button
 
 # Security Access boolean in json
 import json
+import state_manager as sm
 
 ############################################################################
 # Main Code #
 ############################################################################
-
-# Read the access boolean to see if access is granted (FaceID and Password entered)
-def get_access_granted():
-    with open("shared_state.json", "r") as f:
-        state = json.load(f)
-    return state.get("access_granted", False)
-
-def get_door_unlocked():
-    with open("shared_state.json", "r") as f:
-        state = json.load(f)
-    return state.get("door_unlocked", False)
-
-def get_motion_detected():
-    with open("shared_state.json", "r") as f:
-        state = json.load(f)
-    return state.get("motion_detected", False)
-
-def set_door_unlocked(value):
-    try:
-        with open("shared_state.json", "r") as f:
-            state = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        state = {}
-
-    state["door_unlocked"] = value
-
-    with open("shared_state.json", "w") as f:
-        json.dump(state, f, indent=4)
-
-def set_motion_detected(value):
-    try:
-        with open("shared_state.json", "r") as f:
-            state = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        state = {}
-
-    state["motion_detected"] = value
-
-    with open("shared_state.json", "w") as f:
-        json.dump(state, f, indent=4)
 
 def unlock_door():
     # Unlock the door (with a servo)
@@ -67,9 +29,9 @@ def unlock_door():
     
     # Set LED to green
     set_led_color('green')
-
+        
     # Change the json variable that the door's unlocked
-    set_door_unlocked(True)
+    sm.set_door_unlocked(True)
     print("Door Unlocked")
 
 def lock_door():
@@ -80,21 +42,69 @@ def lock_door():
     set_led_color('red')
     
     # Change the json variable that the door's unlocked
-    set_door_unlocked(False)
+    sm.set_door_unlocked(False)
     print("Door Locked")
 
 def change_door_state():
+    print("Button Pressed!")
     # Change the door state
-    if get_door_unlocked():
+    if sm.get_door_unlocked():
         lock_door()
     else:
         unlock_door()
+        
+        # If the user is interupting their nap, display a message
+        if sm.get_nap_in_progress():
+            print("User is interupting their nap. Please wait for the user to exit the pod.")
+            sm.set_nap_in_progress(False)
+
+def turn_off_alarm():
+    # Turn off the alarm
+    sm.set_snooze_alarm(True)
+
+def manage_button_hold():
+    # Change the door state
+    change_door_state()
+
+    # If the alarm is sounding, turn it off
+    if sm.get_alarm_sounding():
+        turn_off_alarm()
+
+def end_of_nap():
+    # Set nap in progress to false
+    sm.set_nap_in_progress(False)
+    sm.set_nap_completed(True)
+
+    # Play an alarm to wake up user
+    play_alarm()
+
+    # Unlock the door
+    unlock_door()
+
+    # Once the user exits, lock the door
+    time.sleep(5)
+    print("User has exited the pod. Locking the door...")
+    lock_door()
 
 def reset():
     # Reset the json variables
-    set_door_unlocked(False)
-    set_motion_detected(False)
-    print("Ready to Run!")
+    sm.set_door_unlocked(False)
+    sm.set_motion_detected(False)
+    sm.set_nap_in_progress(False)
+    sm.set_motion_entering_pod(False)
+    sm.set_motion_exiting_pod(False)
+    sm.set_nap_completed(False)
+    sm.set_alarm_sounding(False)
+    sm.set_snooze_alarm(False)
+
+    # Set LED to red
+    set_led_color('red')
+
+    # Lock the door
+    lock_door()
+
+    time.sleep(5)
+    print("System Reset - Ready to Run!")
 
 # Open GUI
 # if __name__ == "__main__":
@@ -108,36 +118,50 @@ def reset():
 # Reset the json variables
 reset()
 
-# Unlock the door (with a servo)
-unlock_door()
+# Declare button
+doorButton = Button(25)
+# When the button is pushed, the door locks
+doorButton.when_held = manage_button_hold
 
-# Wait for user to enter the pod
-# Check motion sensor (wait for user to enter the pod)
-while(get_door_unlocked()):
+# Start the motion sensor
+# motion_sensor.start_motion_monitor()
 
-    # Wait for user to enter the pod
-    while (not get_motion_detected()):
-        time.sleep(0.1)
-        
-    # Print that the user has entered the pod
-    print("user entered")
+# Wait for access to be granted
+if (sm.get_access_granted()):
+
+    # Unlock the door (with a servo) and turn LED to green
+    unlock_door()
+    
+    # Hard coding motion sensor for debugging
+    print("Waiting for user to enter the pod...")
+    time.sleep(3)
+
+    # Wait for user to open the door and enter the pod
+    # while (not sm.get_motion_entering_pod()):
+    #     time.sleep(0.1)
     
     # Turn the fan on
-    set_motor_speed(0.50)
+    set_fan_speed(0.50)
 
-    # Turn the LED on
-    set_led_color('green')
+    # Once the button is pressed, the door locks
+    print("Waiting for user to lock the door...")
     
-    # When the button is pushed, the door locks
-    doorButton = Button(25)
-    doorButton.when_pressed = change_door_state
+    while (sm.get_door_unlocked()):
+        time.sleep(0.1)
 
-    while (True):
-        time.sleep(100)
+    # Once the user's locked the door, their nap is in progress
+    sm.set_nap_in_progress(True)
 
-        # Turn the fan on
-        # Turn the LED on
+    # State the time for the nap has started
+    print("User has locked the door. Starting nap timer...")
+    print("The user has 20 minutes to take a nap.")
 
+    # Once the nap ends, alarm plays and door unlocks
+    end_of_nap()
+
+
+while True:
+    time.sleep(0.1)
 # User pushes button to lock 
 
 # GUI starts counting down
