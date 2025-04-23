@@ -81,6 +81,12 @@ def end_of_nap():
     # Unlock the door
     unlock_door()
 
+    # Turn off the fan
+    set_fan_speed(0)
+
+    # Set access granted to false for the next user
+    sm.set_access_granted(False)
+
     # Once the user exits, lock the door
     time.sleep(5)
     print("User has exited the pod. Locking the door...")
@@ -126,42 +132,50 @@ doorButton.when_held = manage_button_hold
 # Start the motion sensor
 # motion_sensor.start_motion_monitor()
 
-# Wait for access to be granted
-if (sm.get_access_granted()):
-
-    # Unlock the door (with a servo) and turn LED to green
-    unlock_door()
-    
-    # Hard coding motion sensor for debugging
-    print("Waiting for user to enter the pod...")
-    time.sleep(3)
-
-    # Wait for user to open the door and enter the pod
-    # while (not sm.get_motion_entering_pod()):
-    #     time.sleep(0.1)
-    
-    # Turn the fan on
-    set_fan_speed(0.50)
-
-    # Once the button is pressed, the door locks
-    print("Waiting for user to lock the door...")
-    
-    while (sm.get_door_unlocked()):
-        time.sleep(0.1)
-
-    # Once the user's locked the door, their nap is in progress
-    sm.set_nap_in_progress(True)
-
-    # State the time for the nap has started
-    print("User has locked the door. Starting nap timer...")
-    print("The user has 20 minutes to take a nap.")
-
-    # Once the nap ends, alarm plays and door unlocks
-    end_of_nap()
-
 
 while True:
-    time.sleep(0.1)
+
+    # Wait for access to be granted
+    if (sm.get_access_granted()):
+
+        # Unlock the door (with a servo) and turn LED to green
+        unlock_door()
+        
+        # Hard coding motion sensor for debugging
+        print("Waiting for user to enter the pod...")
+        time.sleep(3)
+
+        # Wait for user to open the door and enter the pod
+        # while (not sm.get_motion_entering_pod()):
+        #     time.sleep(0.1)
+        
+        # Turn the fan on
+        set_fan_speed(0.50)
+
+        # Once the button is pressed, the door locks
+        print("Waiting for user to lock the door...")
+        
+        while (sm.get_door_unlocked()):
+            time.sleep(0.1)
+
+        # Once the user's locked the door, their nap is in progress
+        sm.set_nap_in_progress(True)
+
+        # State the time for the nap has started
+        print("User has locked the door. Starting nap timer...")
+        print("The user has 20 minutes to take a nap.")
+
+        # Once the nap ends, alarm plays and door unlocks. Reset for next user
+        end_of_nap()
+
+
+# TODO:
+'''
+- Make GUI usable while main.py runs
+    - Add GUI to show nap timer
+- Add nap timer
+- Add in motion sensor
+'''
 # User pushes button to lock 
 
 # GUI starts counting down

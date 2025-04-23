@@ -1,5 +1,5 @@
 {
-    "access_granted": true,
+    "access_granted": false,
     "door_unlocked": true,
     "motion_detected": false,
     "nap_in_progress": false,
