@@ -440,8 +440,16 @@ class PasswordPage(tk.Frame):
         self.enter_pod_btn.pack(pady=10)
 
     def set_access_granted(self,value):
+        try:
+            with open("shared_state.json", "r") as f:
+                state = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            state = {}
+
+        state["access_granted"] = value
+
         with open("shared_state.json", "w") as f:
-            json.dump({"access_granted": value}, f)
+            json.dump(state, f, indent=4)
 
     def check_password(self):
         entered_password = self.password_entry.get()

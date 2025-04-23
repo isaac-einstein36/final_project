@@ -1,1 +1,5 @@
-{"access_granted": false}
+{
+    "access_granted": true,
+    "door_unlocked": true,
+    "motion_detected": false
+}
