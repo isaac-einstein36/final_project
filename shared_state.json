@@ -1,5 +1,5 @@
 {
     "access_granted": true,
     "door_unlocked": true,
-    "motion_detected": false
+    "motion_detected": true
 }

@@ -24,8 +24,6 @@ def my_callback(channel):
     print('There was a movement!')
 
     set_motion_detected(True)
-
-    time.sleep(0.1)
     
 try:
     GPIO.add_event_detect(SENSOR_PIN , GPIO.RISING, callback=my_callback)

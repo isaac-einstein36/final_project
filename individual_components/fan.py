@@ -10,15 +10,15 @@ def set_motor_speed(speed):
         speed = 0
     motor_pin.value = speed
 
-try:
-    set_motor_speed(0.5)
-    time.sleep(5)
+# try:
+#     set_motor_speed(0.5)
+#     time.sleep(5)
 
-    set_motor_speed(1.0)
-    time.sleep(5)
+#     set_motor_speed(1.0)
+#     time.sleep(5)
 
-    set_motor_speed(0)
-    time.sleep(5)
+#     set_motor_speed(0)
+#     time.sleep(5)
     
-finally:
-    motor_pin.off()
+# finally:
+#     motor_pin.off()

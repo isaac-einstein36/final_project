@@ -10,6 +10,8 @@ import time
 from gui.main_gui import App
 from individual_components.servo import set_angle       # Servo file
 import individual_components.motion_sensor as motion_sensor # Motion Sensor file
+from individual_components.fan import set_motor_speed # Fan file
+from individual_components.led import set_led_color # LED file
 
 # Security Access boolean in json
 import json
@@ -89,12 +91,23 @@ unlock_door()
 # Wait for user to enter the pod
 # Check motion sensor (wait for user to enter the pod)
 while(get_door_unlocked()):
+
+    # Wait for user to enter the pod
     while (not get_motion_detected()):
         time.sleep(0.1)
         
-    if get_motion_detected():
-        print("User Entered!")
-        set_motion_detected(False)
+    # Print that the user has entered the pod
+    print("user entered")
+    set_motion_detected(False)
+    
+    # Turn the fan on
+    set_motor_speed(0.50)
+
+    # Turn the LED on
+    set_led_color("green")
+    
+    while (True):
+        time.sleep(100)
 
         # Turn the fan on
         # Turn the LED on
