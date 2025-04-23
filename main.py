@@ -12,6 +12,7 @@ from individual_components.servo import set_angle       # Servo file
 import individual_components.motion_sensor as motion_sensor # Motion Sensor file
 from individual_components.fan import set_motor_speed # Fan file
 from individual_components.led import set_led_color # LED file
+from gpiozero import Button
 
 # Security Access boolean in json
 import json
@@ -64,6 +65,9 @@ def unlock_door():
     # Unlock the door (with a servo)
     set_angle(90)  # Unlock the door
     
+    # Set LED to green
+    set_led_color('green')
+
     # Change the json variable that the door's unlocked
     set_door_unlocked(True)
     print("Door Unlocked")
@@ -72,9 +76,25 @@ def lock_door():
     # Unlock the door (with a servo)
     set_angle(180)  # Unlock the door
     
+    # Set LED to red
+    set_led_color('red')
+    
     # Change the json variable that the door's unlocked
     set_door_unlocked(False)
     print("Door Locked")
+
+def change_door_state():
+    # Change the door state
+    if get_door_unlocked():
+        lock_door()
+    else:
+        unlock_door()
+
+def reset():
+    # Reset the json variables
+    set_door_unlocked(False)
+    set_motion_detected(False)
+    print("Ready to Run!")
 
 # Open GUI
 # if __name__ == "__main__":
@@ -84,6 +104,9 @@ def lock_door():
 # # Once Access is Granted!!
 # while (not get_access_granted()):
 #     time.sleep(0.1)
+
+# Reset the json variables
+reset()
 
 # Unlock the door (with a servo)
 unlock_door()
@@ -98,14 +121,17 @@ while(get_door_unlocked()):
         
     # Print that the user has entered the pod
     print("user entered")
-    set_motion_detected(False)
     
     # Turn the fan on
     set_motor_speed(0.50)
 
     # Turn the LED on
-    set_led_color("green")
+    set_led_color('green')
     
+    # When the button is pushed, the door locks
+    doorButton = Button(25)
+    doorButton.when_pressed = change_door_state
+
     while (True):
         time.sleep(100)
 

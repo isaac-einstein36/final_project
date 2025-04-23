@@ -6,6 +6,8 @@ SENSOR_PIN = 12
  
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(SENSOR_PIN, GPIO.IN)
+
+motion_detected_once = False
  
 def set_motion_detected(value):
     try:
@@ -20,10 +22,14 @@ def set_motion_detected(value):
         json.dump(state, f, indent=4)
 
 def my_callback(channel):
+    global motion_detected_once
+    if motion_detected_once:
+        return
     # Here, alternatively, an application / command etc. can be started.
-    print('There was a movement!')
-
-    set_motion_detected(True)
+    else:
+        print('There was a movement!')
+        motion_detected_once = True
+        set_motion_detected(True)
     
 try:
     GPIO.add_event_detect(SENSOR_PIN , GPIO.RISING, callback=my_callback)
