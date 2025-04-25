@@ -5,6 +5,7 @@ from io import StringIO
 from datetime import datetime, timedelta
 import time
 import threading
+from queue import Queue
 
 # Importing Files
 # import read_bookings.read_database as read_database
@@ -23,6 +24,9 @@ import state_manager as sm
 ############################################################################
 # Main Code #
 ############################################################################
+def gui_print(msg):
+    print(msg)
+    gui_message_queue.put(msg)
 
 def unlock_door():
     # Unlock the door (with a servo)
@@ -125,13 +129,12 @@ def reset():
     print("Waiting for the next nap session")
     print("##########################")
 
-# # Open GUI
-# if __name__ == "__main__":
-#     app = App()
-#     app.mainloop()
+# Enable Queue for communication between threads
+gui_message_queue = Queue()
 
+# Open GUI
 def launch_gui():
-    app = App()
+    app = App(gui_message_queue)
     app.mainloop()
 
 # Run GUI in a separate thread
@@ -158,20 +161,26 @@ while True:
         unlock_door()
         
         # Hard coding motion sensor for debugging
-        print("\nWaiting for user to enter the pod...")
+        msg = "\nWaiting for user to enter the pod..."
+        print(msg)
+        gui_print(msg)
         
         # Wait for the user to enter the pod
         while (not sm.get_motion_entering_pod()):
             time.sleep(0.1)
 
         # Once the user enters the pod, turn fan on, etc.
-        print("\nUser has opend the pod!")
+        msg = "\nUser has opened the pod!"
+        print(msg)
+        gui_print(msg)
             
         # Turn the fan on
         set_fan_speed(0.50)
 
         # Once the button is pressed, the door locks
-        print("\nWaiting for user to lock the door...")
+        msg = "\nWaiting for user to lock the door..."
+        print(msg)
+        gui_print(msg)
         
         # Wait for the user to lock the door
         while (sm.get_door_unlocked()):
@@ -185,20 +194,24 @@ while True:
 
         # State the time for the nap has started
         print("\nUser has locked the door. Starting nap timer...")
-        print("The user has 20 minutes to take a nap.")
+        print("The user has 30 minutes to take a nap.")
         ("##########################")
+        gui_print("\nUser has locked the door. Starting nap timer...\nThe user has 30 minutes to take a nap.")
 
-        
         # Calculate the end time of the nap
         start_time = datetime.now()
         nap_duration = .5 * 60
         end_time = start_time + timedelta(seconds=nap_duration)
         
         # Format and print nap end time
-        print("\nNap will end at", end_time.strftime("%-I:%M %p"))  # e.g., 3:35 PM
+        msg = f"Nap will end at {end_time.strftime('%-I:%M %p')}"  # e.g., 3:35 PM
+        print(msg)
+        gui_print(msg)
 
         # Start the timer. Wait for nap duration to end or user to interrupt
-        print("Nap in progress...")
+        msg = "\nNap in progress..."
+        print(msg)
+        gui_print(msg)
 
         # Countdown loop
         while datetime.now() < end_time and not sm.get_nap_interrupted():

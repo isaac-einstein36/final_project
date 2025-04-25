@@ -4,6 +4,7 @@ from tkinter import ttk
 from datetime import datetime
 import threading
 import json
+import queue
 
 import smtplib
 from email.mime.text import MIMEText
@@ -54,8 +55,11 @@ def showHomeButton(screen, controller):
     home_button.place(x=10, y=10)  # Position at the top-left corner
 
 class App(tk.Tk):
-    def __init__(self):
+    def __init__(self, message_queue):
         super().__init__()
+        
+        self.message_queue = message_queue
+        
         self.title("Smart Nap Pod Booking System")
         self.geometry("400x300")
 
@@ -66,10 +70,15 @@ class App(tk.Tk):
         self.frames = {}
 
         # Add all screens here
-        for F in (StartScreen, AllBookingsScreen, CheckInScreen, SkipFacePage, PasswordPage, EnterPodPage):
+        for F in (StartScreen, AllBookingsScreen, CheckInScreen, SkipFacePage, PasswordPage):
             frame = F(parent=container, controller=self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
+
+        # Screens that DO need the queue
+        enter_pod = EnterPodPage(parent=container, controller=self, message_queue=message_queue)
+        self.frames[EnterPodPage] = enter_pod
+        enter_pod.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame(StartScreen)
 
@@ -467,13 +476,36 @@ class PasswordPage(tk.Frame):
             self.enter_pod_btn.config(state="disabled")
 
 class EnterPodPage(tk.Frame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller, message_queue):
         super().__init__(parent)
+
+        self.message_queue = message_queue
 
         showHomeButton(self, controller)
 
-        label = tk.Label(self, text="Welcome to Your Nap Session!")
-        label.pack(pady=20)
+        self.label = tk.Label(self, text="\n\nWelcome to Your Nap Session!")
+        self.label.pack(pady=20)
+
+        # Start checking the queue for updates
+        self.after(100, self.check_queue)
+
+    def check_queue(self):
+        try:
+            while True:
+                msg = self.message_queue.get_nowait()
+                self.label.config(text=msg)  # You can append if you want running logs
+        except:
+            pass
+        self.after(100, self.check_queue)
+
+    def check_queue(self):
+        try:
+            while True:
+                msg = self.message_queue.get_nowait()
+                self.label.config(text=msg)  # or append to a Text widget
+        except queue.Empty:
+            pass
+        self.after(100, self.check_queue)
 
 if __name__ == "__main__":
     app = App()

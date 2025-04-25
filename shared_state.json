@@ -1,8 +1,8 @@
 {
-    "access_granted": false,
+    "access_granted": true,
     "door_unlocked": false,
-    "nap_in_progress": false,
-    "motion_entering_pod": false,
+    "nap_in_progress": true,
+    "motion_entering_pod": true,
     "motion_exiting_pod": false,
     "nap_completed": false,
     "nap_interrupted": false,
