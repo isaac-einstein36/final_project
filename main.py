@@ -203,7 +203,7 @@ while True:
 
         # Calculate the end time of the nap
         start_time = datetime.now()
-        nap_duration = .5 * 60
+        nap_duration = 1 * 60
         end_time = start_time + timedelta(seconds=nap_duration)
         
         # Format and print nap end time
