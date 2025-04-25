@@ -99,3 +99,13 @@ def set_snooze_alarm(value):
     _save_state(state)
 
 ######################################################
+
+def get_nap_interrupted():
+    return _load_state().get("nap_interupted", False)
+
+def set_nap_interrupted(value):
+    state = _load_state()
+    state["nap_interupted"] = value
+    _save_state(state)
+
+######################################################

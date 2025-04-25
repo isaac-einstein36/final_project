@@ -5,6 +5,8 @@
     "motion_entering_pod": false,
     "motion_exiting_pod": false,
     "nap_completed": false,
+    "nap_interrupted": false,
     "alarm_sounding": false,
-    "snooze_alarm": false
+    "snooze_alarm": false,
+    "nap_interupted": false
 }

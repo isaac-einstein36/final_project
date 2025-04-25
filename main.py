@@ -2,7 +2,7 @@
 import urllib.request
 import csv
 from io import StringIO
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 # Importing Files
@@ -51,15 +51,17 @@ def change_door_state():
         lock_door()
     else:
         unlock_door()
-        
-        # If the user is interupting their nap, display a message
-        if sm.get_nap_in_progress():
-            print("User is interupting their nap. Please wait for the user to exit the pod.")
-            sm.set_nap_in_progress(False)
 
 def turn_off_alarm():
     # Turn off the alarm
     sm.set_snooze_alarm(True)
+
+def check_nap_interupt():
+    # If the user is interupting their nap, display a message
+    if sm.get_nap_in_progress():
+        print("User is interupting their nap. Please wait for the user to exit the pod.")
+        sm.set_nap_in_progress(False)
+        sm.set_nap_interrupted(True)
 
 def manage_button_hold():
     # Change the door state
@@ -69,13 +71,17 @@ def manage_button_hold():
     if sm.get_alarm_sounding():
         turn_off_alarm()
 
+    # Check if the user is interupting their nap
+    check_nap_interupt()
+
 def end_of_nap():
     # Set nap in progress to false
     sm.set_nap_in_progress(False)
     sm.set_nap_completed(True)
 
-    # Play an alarm to wake up user
-    play_alarm()
+    # Play an alarm to wake up user unless they interrupted the nap
+    if not sm.get_nap_interrupted():
+        play_alarm()
 
     # Unlock the door
     unlock_door()
@@ -102,6 +108,7 @@ def reset():
     sm.set_motion_entering_pod(False)
     sm.set_motion_exiting_pod(False)
     sm.set_nap_completed(False)
+    sm.set_nap_interrupted(False)
     sm.set_alarm_sounding(False)
     sm.set_snooze_alarm(False)
 
@@ -112,7 +119,7 @@ def reset():
     lock_door()
 
     time.sleep(5)
-    print("System Reset - Ready to Run!")
+    print("\nSystem Reset - Ready to Run!")
     print("Waiting for the next nap session")
     print("##########################")
 
@@ -152,8 +159,7 @@ while True:
             time.sleep(0.1)
 
         # Once the user enters the pod, turn fan on, etc.
-        print("\nUser has entered the pod. Starting nap session!")
-        ("##########################")
+        print("\nUser has opend the pod!")
             
         # Turn the fan on
         set_fan_speed(0.50)
@@ -165,6 +171,9 @@ while True:
         while (sm.get_door_unlocked()):
             time.sleep(0.1)
 
+        # Sleep for button debouncing
+        time.sleep(1)
+
         # Once the user's locked the door, their nap is in progress
         sm.set_nap_in_progress(True)
 
@@ -172,8 +181,30 @@ while True:
         print("\nUser has locked the door. Starting nap timer...")
         print("The user has 20 minutes to take a nap.")
         ("##########################")
-        time.sleep(1)
 
+        
+        # Calculate the end time of the nap
+        start_time = datetime.now()
+        nap_duration = .5 * 60
+        end_time = start_time + timedelta(seconds=nap_duration)
+        
+        # Format and print nap end time
+        print("\nNap will end at", end_time.strftime("%-I:%M %p"))  # e.g., 3:35 PM
+
+        # Start the timer. Wait for nap duration to end or user to interrupt
+        print("Nap in progress...")
+
+        # Countdown loop
+        while datetime.now() < end_time and not sm.get_nap_interrupted():
+            remaining_time = end_time - datetime.now()
+            remaining_seconds = int(remaining_time.total_seconds())
+
+            mins, secs = divmod(remaining_seconds, 60)
+            hrs, mins = divmod(mins, 60)
+            print(f"Time remaining: {hrs:02}:{mins:02}:{secs:02}", end='\r')
+
+            time.sleep(1)
+        
         # Once the nap ends, alarm plays and door unlocks. Reset for next user
         end_of_nap()
 
@@ -188,7 +219,7 @@ while True:
 - Make GUI usable while main.py runs
     - Add GUI to show nap timer
 - Add nap timer
-- Add in motion sensor
+- Add interrupting nap session
 '''
 # User pushes button to lock 
 
