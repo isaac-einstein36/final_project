@@ -483,29 +483,70 @@ class EnterPodPage(tk.Frame):
 
         showHomeButton(self, controller)
 
-        self.label = tk.Label(self, text="\n\nWelcome to Your Nap Session!")
-        self.label.pack(pady=20)
+        label = tk.Label(self, text="\n\nWelcome to Your Nap Session!")
+        label.pack(pady=20)
+
+        self.timer_label = tk.Label(self, text="Time remaining: --:--:--", font=("Helvetica", 12))
+        self.timer_label.pack(pady=(10, 5))
+        
+        # Create textbox for displaying messages
+        self.textbox = tk.Text(
+            self,
+            height=15,
+            width=60,
+            state='disabled',
+            wrap='word',
+            bg=self.cget("bg"),           # Match frame background
+            relief='flat',                # Remove 3D border
+            bd=0,                         # No border
+            font=("Helvetica", 11),       # Clean readable font
+            highlightthickness=0,        # No border highlight
+            cursor="arrow"               # No typing cursor
+        )
+        self.textbox.pack(pady=(10, 5), padx=10)
+
+        # Add a clear textbox button
+        clear_button = tk.Button(
+            self,
+            text="Clear Messages",
+            command=self.clear_textbox,
+            font=("Helvetica", 10),
+            relief='ridge',
+            bg="#e0e0e0"
+        )
+        clear_button.pack(pady=(0, 10))
+
+        # Add a scrollbar to the textbox
+        scrollbar = tk.Scrollbar(self, command=self.textbox.yview)
+        scrollbar.pack(side='right', fill='y')
+        self.textbox.config(yscrollcommand=scrollbar.set)
 
         # Start checking the queue for updates
         self.after(100, self.check_queue)
 
-    def check_queue(self):
-        try:
-            while True:
-                msg = self.message_queue.get_nowait()
-                self.label.config(text=msg)  # You can append if you want running logs
-        except:
-            pass
-        self.after(100, self.check_queue)
+    def clear_textbox(self):
+        self.textbox.config(state='normal')
+        self.textbox.delete(1.0, tk.END)
+        self.textbox.config(state='disabled')
 
     def check_queue(self):
         try:
             while True:
                 msg = self.message_queue.get_nowait()
-                self.label.config(text=msg)  # or append to a Text widget
+
+                # Handle timer updates differently
+                if isinstance(msg, dict) and msg.get("type") == "timer":
+                    self.timer_label.config(text=f"Time remaining: {msg['text']}")
+                else:
+                    self.textbox.config(state='normal')
+                    self.textbox.insert(tk.END, msg + "\n")
+                    self.textbox.see(tk.END)
+                    self.textbox.config(state='disabled')
+
         except queue.Empty:
             pass
-        self.after(100, self.check_queue)
+
+        self.after(200, self.check_queue)  # Keep checking
 
 if __name__ == "__main__":
     app = App()

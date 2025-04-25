@@ -37,7 +37,7 @@ def unlock_door():
         
     # Change the json variable that the door's unlocked
     sm.set_door_unlocked(True)
-    print("\nDoor Unlocked")
+    gui_print("\nDoor Unlocked")
 
 def lock_door():
     # Unlock the door (with a servo)
@@ -48,7 +48,7 @@ def lock_door():
     
     # Change the json variable that the door's unlocked
     sm.set_door_unlocked(False)
-    print("\nDoor Locked")
+    gui_print("\nDoor Locked")
 
 def change_door_state():
     # Change the door state
@@ -64,7 +64,15 @@ def turn_off_alarm():
 def check_nap_interupt():
     # If the user is interupting their nap, display a message
     if sm.get_nap_in_progress():
-        print("User is interupting their nap. Please wait for the user to exit the pod.")
+        gui_print("User is interupting their nap. Please wait for the user to exit the pod.")
+
+        # Update the time remaining on the GUI
+        hrs = 0
+        mins = 0
+        secs = 0
+        gui_print({"type": "timer", "text": f"{hrs:02}:{mins:02}:{secs:02}"})
+
+        # Update the json variable that the user is interupting their nap
         sm.set_nap_in_progress(False)
         sm.set_nap_interrupted(True)
 
@@ -80,6 +88,8 @@ def manage_button_hold():
     check_nap_interupt()
 
 def end_of_nap():
+    gui_print("\nNap is over!")
+
     # Set nap in progress to false
     sm.set_nap_in_progress(False)
     sm.set_nap_completed(True)
@@ -95,12 +105,12 @@ def end_of_nap():
     set_fan_speed(0)
 
     # Wait for the user to exit the pod
-    print("\nWaiting for user to exit the pod...")
+    gui_print("\nWaiting for user to exit the pod...")
     
     while (not sm.get_motion_exiting_pod()):
         time.sleep(0.1)
     
-    print("\nUser has exited the pod. Locking the door...")
+    gui_print("\nUser has exited the pod. Locking the door...")
     
     time.sleep(1)
 
@@ -125,9 +135,9 @@ def reset():
     lock_door()
 
     time.sleep(5)
-    print("\nSystem Reset - Ready to Run!")
-    print("Waiting for the next nap session")
-    print("##########################")
+    gui_print("\nSystem Reset - Ready to Run!")
+    gui_print("Waiting for the next nap session")
+    gui_print("________________________________________")
 
 # Enable Queue for communication between threads
 gui_message_queue = Queue()
@@ -162,7 +172,6 @@ while True:
         
         # Hard coding motion sensor for debugging
         msg = "\nWaiting for user to enter the pod..."
-        print(msg)
         gui_print(msg)
         
         # Wait for the user to enter the pod
@@ -171,7 +180,6 @@ while True:
 
         # Once the user enters the pod, turn fan on, etc.
         msg = "\nUser has opened the pod!"
-        print(msg)
         gui_print(msg)
             
         # Turn the fan on
@@ -179,7 +187,6 @@ while True:
 
         # Once the button is pressed, the door locks
         msg = "\nWaiting for user to lock the door..."
-        print(msg)
         gui_print(msg)
         
         # Wait for the user to lock the door
@@ -192,10 +199,6 @@ while True:
         # Once the user's locked the door, their nap is in progress
         sm.set_nap_in_progress(True)
 
-        # State the time for the nap has started
-        print("\nUser has locked the door. Starting nap timer...")
-        print("The user has 30 minutes to take a nap.")
-        ("##########################")
         gui_print("\nUser has locked the door. Starting nap timer...\nThe user has 30 minutes to take a nap.")
 
         # Calculate the end time of the nap
@@ -204,8 +207,7 @@ while True:
         end_time = start_time + timedelta(seconds=nap_duration)
         
         # Format and print nap end time
-        msg = f"Nap will end at {end_time.strftime('%-I:%M %p')}"  # e.g., 3:35 PM
-        print(msg)
+        msg = f"\nNap will end at {end_time.strftime('%-I:%M %p')}"  # e.g., 3:35 PM
         gui_print(msg)
 
         # Start the timer. Wait for nap duration to end or user to interrupt
@@ -220,7 +222,8 @@ while True:
 
             mins, secs = divmod(remaining_seconds, 60)
             hrs, mins = divmod(mins, 60)
-            print(f"Time remaining: {hrs:02}:{mins:02}:{secs:02}", end='\r')
+            # print(f"Time remaining: {hrs:02}:{mins:02}:{secs:02}", end='\r')
+            gui_print({"type": "timer", "text": f"{hrs:02}:{mins:02}:{secs:02}"})
 
             time.sleep(1)
         
