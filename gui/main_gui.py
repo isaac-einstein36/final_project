@@ -11,7 +11,6 @@ from email.mime.multipart import MIMEMultipart
 import random
 from tkinter import messagebox
 
-
 # Global stop_event to control when to stop the face recognition
 stop_event = threading.Event()
 

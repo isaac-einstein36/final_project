@@ -52,6 +52,10 @@ def motion_handler(channel):
         # If the user is already in the pod, don't do anything
         
 
+        # DEMO: If the user interrupted their nap, pause for a few seconds to allow the door to be closed
+        if sm.get_nap_interrupted():
+                time.sleep(5)
+
         # Detect motion once the user exits the pod the first time
         if sm.get_nap_completed() and sm.get_access_granted() and sm.get_door_unlocked() and not sm.get_motion_exiting_pod():
                 sm.set_motion_exiting_pod(True)

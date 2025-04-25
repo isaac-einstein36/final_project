@@ -4,6 +4,7 @@ import csv
 from io import StringIO
 from datetime import datetime, timedelta
 import time
+import threading
 
 # Importing Files
 # import read_bookings.read_database as read_database
@@ -91,6 +92,7 @@ def end_of_nap():
 
     # Wait for the user to exit the pod
     print("\nWaiting for user to exit the pod...")
+    
     while (not sm.get_motion_exiting_pod()):
         time.sleep(0.1)
     
@@ -123,14 +125,18 @@ def reset():
     print("Waiting for the next nap session")
     print("##########################")
 
-# Open GUI
+# # Open GUI
 # if __name__ == "__main__":
 #     app = App()
 #     app.mainloop()
 
-# # Once Access is Granted!!
-# while (not get_access_granted()):
-#     time.sleep(0.1)
+def launch_gui():
+    app = App()
+    app.mainloop()
+
+# Run GUI in a separate thread
+gui_thread = threading.Thread(target=launch_gui, daemon=True)
+gui_thread.start()
 
 # Reset the json variables
 reset()
@@ -218,20 +224,4 @@ while True:
 '''
 - Make GUI usable while main.py runs
     - Add GUI to show nap timer
-- Add nap timer
-- Add interrupting nap session
 '''
-# User pushes button to lock 
-
-# GUI starts counting down
-
-# Timer Ends
-        # Alarm sounds
-        # Door Unlocks
-        # LED changes color to alert user
-        
-# Wait for motion sensor again (Wait for user to exit the pod)
-# Have user click on GUI that they exited
-        # Turn off fan
-        # Turn off LED
-        # Lock the door with the servo
