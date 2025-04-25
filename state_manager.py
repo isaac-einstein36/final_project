@@ -40,16 +40,6 @@ def set_door_unlocked(value):
 
 ######################################################
 
-def get_motion_detected():
-    return _load_state().get("motion_detected", False)
-
-def set_motion_detected(value):
-    state = _load_state()
-    state["motion_detected"] = value
-    _save_state(state)
-
-######################################################
-
 def get_nap_in_progress():
     return _load_state().get("nap_in_progress", False)
 

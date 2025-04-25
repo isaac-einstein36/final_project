@@ -133,13 +133,16 @@ def play_alarm():
     sm.set_alarm_sounding(True)
     
     Buzz.start(50)
-    for i in range(1, len(song)): 
+    for i in range(1, 7):#len(song)): 
         if (not sm.get_snooze_alarm()):
           Buzz.ChangeFrequency(song[i]) 
           time.sleep(beat[i]*0.13)
         else:
            Buzz.stop()
            break 
+    # At end of song, stop alarm
+    sm.set_alarm_sounding(False)
+    Buzz.stop()
   else:
      sm.set_alarm_sounding(False)
      Buzz.stop()

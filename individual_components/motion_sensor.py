@@ -32,38 +32,32 @@
 #     print ("Finish")
     
     
-# ## Revised Code
-# import RPi.GPIO as GPIO
-# import time
-# import threading
-# import state_manager as sm
+## Revised Code
+import RPi.GPIO as GPIO
+import time
+import threading
+import state_manager as sm
 
-# SENSOR_PIN = 12
+SENSOR_PIN = 12
 
-# GPIO.setmode(GPIO.BCM)
-# GPIO.setup(SENSOR_PIN, GPIO.IN)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(SENSOR_PIN, GPIO.IN)
 
-# motion_phase = "idle"  # shared state
+def motion_handler(channel):
+        # Detect motion once the user enters the pod the first time
+        if sm.get_access_granted() and sm.get_door_unlocked() and not sm.get_motion_entering_pod():
+                sm.set_motion_entering_pod(True)
+                print("Motion detected: User entering pod")
 
-# def motion_handler(channel):
-#     global motion_phase
-#     if motion_phase == "idle":
-#         print("User entering pod")
-#         sm.set_motion_entering_pod(True)
-#         sm.set_motion_exiting_pod(False)
-#         motion_phase = "entered"
+        # If the user is already in the pod, don't do anything
+        
 
-# def monitor_for_exit():
-#     global motion_phase
-#     while True:
-#         if motion_phase == "entered" and GPIO.input(SENSOR_PIN) == GPIO.LOW:
-#             print("User exiting pod")
-#             sm.set_motion_exiting_pod(True)
-#             sm.set_motion_entering_pod(False)
-#             motion_phase = "idle"
-#         time.sleep(0.5)
-
-# def start_motion_monitor():
-#     GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=motion_handler)
-#     threading.Thread(target=monitor_for_exit, daemon=True).start()
-
+        # Detect motion once the user exits the pod the first time
+        if sm.get_nap_completed() and sm.get_access_granted() and sm.get_door_unlocked() and not sm.get_motion_exiting_pod():
+                sm.set_motion_exiting_pod(True)
+                print("Motion detected: User exiting pod")
+        
+        # If the user is already out of the pod, don't do anything
+        
+def start_motion_monitor():
+        GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=motion_handler)

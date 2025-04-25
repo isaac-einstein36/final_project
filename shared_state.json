@@ -1,11 +1,10 @@
 {
     "access_granted": false,
-    "door_unlocked": true,
-    "motion_detected": false,
+    "door_unlocked": false,
     "nap_in_progress": false,
     "motion_entering_pod": false,
     "motion_exiting_pod": false,
-    "nap_completed": true,
-    "alarm_sounding": true,
-    "snooze_alarm": true
+    "nap_completed": false,
+    "alarm_sounding": false,
+    "snooze_alarm": false
 }

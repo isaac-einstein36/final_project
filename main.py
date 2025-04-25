@@ -32,7 +32,7 @@ def unlock_door():
         
     # Change the json variable that the door's unlocked
     sm.set_door_unlocked(True)
-    print("Door Unlocked")
+    print("\nDoor Unlocked")
 
 def lock_door():
     # Unlock the door (with a servo)
@@ -43,10 +43,9 @@ def lock_door():
     
     # Change the json variable that the door's unlocked
     sm.set_door_unlocked(False)
-    print("Door Locked")
+    print("\nDoor Locked")
 
 def change_door_state():
-    print("Button Pressed!")
     # Change the door state
     if sm.get_door_unlocked():
         lock_door()
@@ -84,18 +83,21 @@ def end_of_nap():
     # Turn off the fan
     set_fan_speed(0)
 
-    # Set access granted to false for the next user
-    sm.set_access_granted(False)
+    # Wait for the user to exit the pod
+    print("\nWaiting for user to exit the pod...")
+    while (not sm.get_motion_exiting_pod()):
+        time.sleep(0.1)
+    
+    print("\nUser has exited the pod. Locking the door...")
+    
+    time.sleep(1)
 
-    # Once the user exits, lock the door
-    time.sleep(5)
-    print("User has exited the pod. Locking the door...")
-    lock_door()
+    # Set access granted to false for the next user and lock the door
+    sm.set_access_granted(False)
 
 def reset():
     # Reset the json variables
     sm.set_door_unlocked(False)
-    sm.set_motion_detected(False)
     sm.set_nap_in_progress(False)
     sm.set_motion_entering_pod(False)
     sm.set_motion_exiting_pod(False)
@@ -111,6 +113,8 @@ def reset():
 
     time.sleep(5)
     print("System Reset - Ready to Run!")
+    print("Waiting for the next nap session")
+    print("##########################")
 
 # Open GUI
 # if __name__ == "__main__":
@@ -130,8 +134,7 @@ doorButton = Button(25)
 doorButton.when_held = manage_button_hold
 
 # Start the motion sensor
-# motion_sensor.start_motion_monitor()
-
+motion_sensor.start_motion_monitor()
 
 while True:
 
@@ -142,19 +145,23 @@ while True:
         unlock_door()
         
         # Hard coding motion sensor for debugging
-        print("Waiting for user to enter the pod...")
-        time.sleep(3)
-
-        # Wait for user to open the door and enter the pod
-        # while (not sm.get_motion_entering_pod()):
-        #     time.sleep(0.1)
+        print("\nWaiting for user to enter the pod...")
         
+        # Wait for the user to enter the pod
+        while (not sm.get_motion_entering_pod()):
+            time.sleep(0.1)
+
+        # Once the user enters the pod, turn fan on, etc.
+        print("\nUser has entered the pod. Starting nap session!")
+        ("##########################")
+            
         # Turn the fan on
         set_fan_speed(0.50)
 
         # Once the button is pressed, the door locks
-        print("Waiting for user to lock the door...")
+        print("\nWaiting for user to lock the door...")
         
+        # Wait for the user to lock the door
         while (sm.get_door_unlocked()):
             time.sleep(0.1)
 
@@ -162,11 +169,18 @@ while True:
         sm.set_nap_in_progress(True)
 
         # State the time for the nap has started
-        print("User has locked the door. Starting nap timer...")
+        print("\nUser has locked the door. Starting nap timer...")
         print("The user has 20 minutes to take a nap.")
+        ("##########################")
+        time.sleep(1)
 
         # Once the nap ends, alarm plays and door unlocks. Reset for next user
         end_of_nap()
+
+        time.sleep(3)
+
+        # State the system is reset
+        reset()
 
 
 # TODO:
