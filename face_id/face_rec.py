@@ -14,7 +14,7 @@ def start_face_recognition(update_name_callback):
     stop_event.clear()
 
     # Initialize 'currentname' to trigger only when a new person is identified
-    currentname = "unknown"
+    currentname = "Dr.Metzler"
     encodingsP = "face_id/encodings.pickle"  # Path to your encodings file
     cascade = "face_id/haarcascade_frontalface_default.xml"  # Path to your cascade file
 
